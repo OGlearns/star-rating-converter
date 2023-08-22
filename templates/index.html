@@ -5,12 +5,20 @@
 </head>
 <body>
     <h1>CSV Ratings Conversion</h1>
-    
+
     <form action="http://oglearns.pythonanywhere.com/convert_ratings" method="post" enctype="multipart/form-data">
-        <label for="file">Upload CSV File:</label>
-        <input type="file" name="file" accept=".csv" required>
         <br>
-        <input required type="text" name="column_name">
+        <br>
+        <label for="file">Upload CSV File:</label>
+        <br>
+        <br>
+        <input id="file" type="file" name="file" accept=".csv" required>
+        <br>
+        <br>
+        <label for="column_name">Enter column name for star ratings if different from 'rating':</label>
+        <br>
+        <input type="text" placeholder="rating" id="column_name" name="column_name">
+        <br>
         <br>
         <button type="submit">Convert Ratings</button>
     </form>

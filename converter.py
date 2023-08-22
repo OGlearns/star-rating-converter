@@ -12,6 +12,7 @@ def index():
 def convert_ratings():
     try:
         column_name = str(request.form.get('column_name'))
+
         # Get the uploaded file from the request
         uploaded_file = request.files['file']
 
@@ -19,11 +20,14 @@ def convert_ratings():
         df = pd.read_csv(uploaded_file)
 
         # Ensure the 'rating' column exists
-        if column_name not in df.columns:
-            return jsonify({'error': f'Column {column_name} not found in the CSV file.'})
+        if column_name not in df.columns or 'rating' not in df.columns:
+            return jsonify({'error': f'Column "rating" not found in the CSV file.'})
 
-        # Double the values in the 'rating' column
-        df[column_name] = df[column_name] * 2
+        if column_name:
+            # Double the values in the 'rating' column
+            df[column_name] = df[column_name] * 2
+        else:
+            df['rating'] = df['rating'] * 2
 
         # Prepare the updated CSV data
         updated_csv = BytesIO()
