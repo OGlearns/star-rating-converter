@@ -1,6 +1,6 @@
-from flask import Flask, request, jsonify, render_template
-import csv
-import io
+from flask import Flask, request, jsonify, render_template, send_file
+import pandas as pd
+from io import BytesIO
 
 app = Flask(__name__)
 
@@ -11,40 +11,30 @@ def index():
 @app.route('/convert_ratings', methods=['POST'])
 def convert_ratings():
     try:
+        column_name = str(request.form.get('column_name'))
         # Get the uploaded file from the request
         uploaded_file = request.files['file']
 
-        # Read the CSV file into a list of dictionaries
-        csv_data = []
-        csv_reader = csv.DictReader(io.StringIO(uploaded_file.read().decode('utf-8')))
+        # Load the CSV file into a pandas DataFrame
+        df = pd.read_csv(uploaded_file)
 
-        fieldnames = csv_reader.fieldnames
-        
-        # Ensure the 'ratings' column exists
-        if 'rating' not in fieldnames:
-            return jsonify({'error': 'Column "rating" not found in the CSV file.'})
-        
-        for row in csv_reader:
-            csv_data.append(row)
+        # Ensure the 'rating' column exists
+        if column_name not in df.columns:
+            return jsonify({'error': f'Column {column_name} not found in the CSV file.'})
 
-        # Convert the ratings to a 10-point system
-        for row in csv_data:
-            row['rating'] = str(int(row['rating']) * 2)
+        # Double the values in the 'rating' column
+        df[column_name] = df[column_name] * 2
 
         # Prepare the updated CSV data
-        updated_csv = io.StringIO()
-        csv_writer = csv.DictWriter(updated_csv, fieldnames=csv_data[0].keys())
-        csv_writer.writeheader()
-        csv_writer.writerows(csv_data)
+        updated_csv = BytesIO()
+        df.to_csv(updated_csv, index=False)
 
-        # Create a response with the updated CSV data
-        response = jsonify({'updated_csv': updated_csv.getvalue()})
-        response.headers['Content-Disposition'] = 'attachment; filename=updated_ratings.csv'
-        response.headers['Content-Type'] = 'text/csv'
-        return response
+        # Return the updated CSV file
+        updated_csv.seek(0)
+        return send_file(updated_csv, as_attachment=True, attachment_filename=uploaded_file.filename, mimetype='text/csv')
 
     except Exception as e:
-        return jsonify({'error': str(e)})
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
