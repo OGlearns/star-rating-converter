@@ -11,6 +11,7 @@ def index():
 @app.route('/convert_ratings', methods=['POST'])
 def convert_ratings():
     try:
+
         # Get the uploaded file from the request
         uploaded_file = request.files['file']
 
